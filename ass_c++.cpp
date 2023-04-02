@@ -53,7 +53,31 @@ void displayInstructions()
     cout << "Press any key to return to the main menu..." << endl;
     _getch(); // Wait for user input
 }
-
+void displayBoard(int board[ROWS][COLS], int score, int highScore)
+{
+    system("cls"); // Clear the console window
+    cout << "Score: " << score << endl;
+    cout << "High Score: " << highScore << endl;
+    cout << "+----+----+----+----+" << endl;
+    for (int row = 0; row < ROWS; row++)
+    {
+        cout << "|";
+        for (int col = 0; col < COLS; col++)
+        {
+            if (board[row][col] == 0)
+            {
+                cout << setw(4) << " ";
+            }
+            else // Otherwise, display the tile value
+            {
+                cout << setw(4) << board[row][col];
+            }
+            cout << "|";
+        }
+        cout << endl;
+        cout << "+----+----+----+----+" << endl;
+    }
+}
 
 
 
