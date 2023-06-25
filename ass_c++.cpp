@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <conio.h>
+#include <vector>
 
 using namespace std;
 
@@ -50,9 +51,10 @@ void displayInstructions()
     cout << "Use the arrow keys to move the tiles." << endl;
     cout << "Tiles with the same number will merge into one when they touch." << endl;
     cout << "Reach 2048 to win!" << endl;
-    cout << "Press any key to return to the main menu..." << endl;
-    _getch(); // Wait for user input
+    cout << "Press enter to return to the main menu..." << endl;
+    cin.ignore(); // Wait for user input
 }
+
 void displayBoard(int board[ROWS][COLS], int score, int highScore)
 {
     system("cls"); // Clear the console window
@@ -79,115 +81,37 @@ void displayBoard(int board[ROWS][COLS], int score, int highScore)
     }
 }
 
-    // Count the number of empty tiles
-    int count = 0;
-    for (int row = 0; row < ROWS; row++)
-    {
-        for (int col = 0; col < COLS; col++)
-        {
-            if (board[row][col] == 0)
-            {
-                count++;
-            }
-        }
-    }
-
-    // Generate a random number between 1 and the number of empty tiles
-    int randomNumber = rand() % count + 1;
-
-    // Find the tile corresponding to the random number
-    int index = 0;
-    for (int row = 0; row < ROWS; row++)
-    {
-        for (int col = 0; col < COLS; col++)
-        {
-            if (board[row][col] == 0)
-            {
-                index++;
-                if (index == randomNumber)
-                {
-                    // Place a new tile at the empty tile
-                    board[row][col] = 2;
-                    return;
-                }
-            }
-        }
-    }
-}
 void generateNewTile(int board[ROWS][COLS])
 {
-    // Count the number of empty tiles
-    int count = 0;
+    // Create a list of empty positions
+    vector<pair<int, int>> emptyPositions;
     for (int row = 0; row < ROWS; row++)
     {
         for (int col = 0; col < COLS; col++)
         {
             if (board[row][col] == 0)
             {
-                count++;
+                emptyPositions.push_back(make_pair(row, col));
             }
         }
     }
 
-    // Generate a random number between 1 and the number of empty tiles
-    int randomNumber = rand() % count + 1;
-
-    // Find the tile corresponding to the random number
-    int index = 0;
-    for (int row = 0; row < ROWS; row++)
+    // Check if there are empty positions
+    if (emptyPositions.empty())
     {
-        for (int col = 0; col < COLS; col++)
-        {
-            if (board[row][col] == 0)
-            {
-                index++;
-                if (index == randomNumber)
-                {
-                    // Place a new tile at the empty tile
-                    board[row][col] = 2;
-                    return;
-                }
-            }
-        }
+        return; // No empty positions, do nothing
     }
+
+    // Generate a random index
+    int randomIndex = rand() % emptyPositions.size();
+
+    // Get the random empty position
+    pair<int, int> randomPosition = emptyPositions[randomIndex];
+
+    // Place a new tile at the random empty position
+    board[randomPosition.first][randomPosition.second] = 2;
 }
-void generateNewTile(int board[ROWS][COLS])
-{
-    // Count the number of empty tiles
-    int count = 0;
-    for (int row = 0; row < ROWS; row++)
-    {
-        for (int col = 0; col < COLS; col++)
-        {
-            if (board[row][col] == 0)
-            {
-                count++;
-            }
-        }
-    }
 
-    // Generate a random number between 1 and the number of empty tiles
-    int randomNumber = rand() % count + 1;
-
-    // Find the tile corresponding to the random number
-    int index = 0;
-    for (int row = 0; row < ROWS; row++)
-    {
-        for (int col = 0; col < COLS; col++)
-        {
-            if (board[row][col] == 0)
-            {
-                index++;
-                if (index == randomNumber)
-                {
-                    // Place a new tile at the empty tile
-                    board[row][col] = 2;
-                    return;
-                }
-            }
-        }
-    }
-}
 bool isGameOver(int board[ROWS][COLS]) {
     // Check for empty tiles
     for(int i = 0; i < ROWS; i++) {
@@ -218,23 +142,26 @@ bool isGameOver(int board[ROWS][COLS]) {
     // Game is over
     return true;
 }
+
 void updateScore(int& score, int value)
 {
     score += value;
 }
+
 void updateHighScore(int& highScore, int score) {
     if (score > highScore) {
         highScore = score;
         cout << "Congratulations! New high score: " << highScore << endl;
     }
 }
+
 bool moveTiles(int board[ROWS][COLS], int& score)
 {
     bool moved = false;
     char move;
 
     cout << "Enter move (WASD): ";
-    move = getch();
+    cin >> move;
 
     switch (move)
     {
@@ -252,11 +179,16 @@ bool moveTiles(int board[ROWS][COLS], int& score)
                             newRow--;
                             moved = true;
                         }
-                        mergeTiles(board, row, col, newRow, col, score);
+                        if (newRow > 0 && mergeTiles(board, row, col, newRow - 1, col, score))
+                        {
+                            newRow--;
+                            moved = true;
+                        }
                     }
                 }
             }
             break;
+
         case 'a':
         case 'A':
             for (int row = 0; row < ROWS; row++)
@@ -271,11 +203,16 @@ bool moveTiles(int board[ROWS][COLS], int& score)
                             newCol--;
                             moved = true;
                         }
-                        mergeTiles(board, row, col, row, newCol, score);
+                        if (newCol > 0 && mergeTiles(board, row, col, row, newCol - 1, score))
+                        {
+                            newCol--;
+                            moved = true;
+                        }
                     }
                 }
             }
             break;
+
         case 's':
         case 'S':
             for (int col = 0; col < COLS; col++)
@@ -290,11 +227,16 @@ bool moveTiles(int board[ROWS][COLS], int& score)
                             newRow++;
                             moved = true;
                         }
-                        mergeTiles(board, row, col, newRow, col, score);
+                        if (newRow < ROWS - 1 && mergeTiles(board, row, col, newRow + 1, col, score))
+                        {
+                            newRow++;
+                            moved = true;
+                        }
                     }
                 }
             }
             break;
+
         case 'd':
         case 'D':
             for (int row = 0; row < ROWS; row++)
@@ -309,11 +251,16 @@ bool moveTiles(int board[ROWS][COLS], int& score)
                             newCol++;
                             moved = true;
                         }
-                        mergeTiles(board, row, col, row, newCol, score);
+                        if (newCol < COLS - 1 && mergeTiles(board, row, col, row, newCol + 1, score))
+                        {
+                            newCol++;
+                            moved = true;
+                        }
                     }
                 }
             }
             break;
+
         default:
             cout << "Invalid move. Please try again." << endl;
             break;
@@ -321,6 +268,9 @@ bool moveTiles(int board[ROWS][COLS], int& score)
 
     return moved;
 }
+
+
+
 bool slideTiles(int board[ROWS][COLS], int row, int col, int newRow, int newCol) {
     if (board[newRow][newCol] == 0) {
         board[newRow][newCol] = board[row][col];
@@ -329,16 +279,19 @@ bool slideTiles(int board[ROWS][COLS], int row, int col, int newRow, int newCol)
     }
     return false;
 }
+
 bool mergeTiles(int board[ROWS][COLS], int row, int col, int newRow, int newCol, int& score)
 {
-    if (board[row][col] == board[newRow][newCol]) {
-        board[newRow][newCol] *= 2;
+    if (board[row][col] == board[newRow][newCol])
+    {
+        board[newRow][newCol] += board[row][col];
         board[row][col] = 0;
-        updateScore(score, board[newRow][newCol]);
+        score += board[newRow][newCol];
         return true;
     }
     return false;
 }
+
 
 int main()
 {
@@ -371,5 +324,3 @@ int main()
 
     return 0;
 }
-
-
